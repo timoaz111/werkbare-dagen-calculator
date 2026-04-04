@@ -487,20 +487,31 @@ class WerkbareDagenApp(tk.Tk):
 def _maak_snelkoppeling():
     """Maakt een snelkoppeling op het bureaublad aan (alleen als .exe)."""
     if not getattr(sys, 'frozen', False):
-        return  # Alleen in gebouwde .exe
+        return False
     try:
-        exe_pad = sys.executable
-        bureaublad = os.path.join(os.path.expanduser("~"), "Desktop")
-        snelkoppeling = os.path.join(bureaublad, "Werkbare Dagen Calculator.lnk")
+        exe_pad = sys.executable.replace("'", "''")
+        # Haal het echte bureaublad-pad op via PowerShell (werkt ook met OneDrive)
+        r = subprocess.run(
+            ["powershell", "-NoProfile", "-Command",
+             "[Environment]::GetFolderPath('Desktop')"],
+            capture_output=True, text=True
+        )
+        bureaublad = r.stdout.strip() or os.path.join(os.path.expanduser("~"), "Desktop")
+        snelkoppeling = os.path.join(bureaublad, "Werkbare Dagen Calculator.lnk").replace("'", "''")
         ps = f"""
 $ws = New-Object -ComObject WScript.Shell
 $s = $ws.CreateShortcut('{snelkoppeling}')
 $s.TargetPath = '{exe_pad}'
+$s.IconLocation = '{exe_pad}, 0'
 $s.Description = 'Werkbare Dagen Calculator'
+$s.WorkingDirectory = Split-Path '{exe_pad}'
 $s.Save()
 """
-        subprocess.run(["powershell", "-Command", ps], capture_output=True)
-        return True
+        result = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps],
+            capture_output=True
+        )
+        return result.returncode == 0
     except Exception:
         return False
 
