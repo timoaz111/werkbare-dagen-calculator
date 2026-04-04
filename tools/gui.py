@@ -63,6 +63,16 @@ class WerkbareDagenApp(tk.Tk):
         self.configure(bg=APP_BG)
         self.resizable(True, True)
 
+        # Stel bouwhelm icoon in voor het venster
+        try:
+            if getattr(sys, 'frozen', False):
+                icon_pad = os.path.join(sys._MEIPASS, "tools", "icon.ico")
+            else:
+                icon_pad = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "icon.ico")
+            self.iconbitmap(icon_pad)
+        except Exception:
+            pass
+
         self._build_ui()
 
     # ------------------------------------------------------------------ UI
