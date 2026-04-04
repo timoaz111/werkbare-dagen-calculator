@@ -5,6 +5,7 @@ Gebouwd met Tkinter voor gebruik op Windows.
 
 import sys
 import os
+import subprocess
 import threading
 from datetime import date, datetime
 
@@ -483,8 +484,62 @@ class WerkbareDagenApp(tk.Tk):
             )
 
 
+def _maak_snelkoppeling():
+    """Maakt een snelkoppeling op het bureaublad aan (alleen als .exe)."""
+    if not getattr(sys, 'frozen', False):
+        return  # Alleen in gebouwde .exe
+    try:
+        exe_pad = sys.executable
+        bureaublad = os.path.join(os.path.expanduser("~"), "Desktop")
+        snelkoppeling = os.path.join(bureaublad, "Werkbare Dagen Calculator.lnk")
+        ps = f"""
+$ws = New-Object -ComObject WScript.Shell
+$s = $ws.CreateShortcut('{snelkoppeling}')
+$s.TargetPath = '{exe_pad}'
+$s.Description = 'Werkbare Dagen Calculator'
+$s.Save()
+"""
+        subprocess.run(["powershell", "-Command", ps], capture_output=True)
+        return True
+    except Exception:
+        return False
+
+
+def _vraag_snelkoppeling(root):
+    """Toont eenmalig een dialoog om een bureaublad-snelkoppeling aan te maken."""
+    if not getattr(sys, 'frozen', False):
+        return  # Alleen in gebouwde .exe
+
+    # Markeerbestand — als dit bestaat, al eerder gevraagd
+    markeer = os.path.join(os.path.dirname(sys.executable), ".desktop_asked")
+    if os.path.exists(markeer):
+        return
+
+    # Markeer direct zodat het maar één keer gevraagd wordt
+    try:
+        open(markeer, 'w').close()
+    except Exception:
+        pass
+
+    antwoord = messagebox.askyesno(
+        "Snelkoppeling aanmaken",
+        "Wil je een snelkoppeling op je bureaublad aanmaken\n"
+        "zodat je dit programma makkelijk kunt terugvinden?",
+        parent=root
+    )
+    if antwoord:
+        succes = _maak_snelkoppeling()
+        if succes:
+            messagebox.showinfo(
+                "Snelkoppeling aangemaakt",
+                "De snelkoppeling is aangemaakt op je bureaublad.",
+                parent=root
+            )
+
+
 def main():
     app = WerkbareDagenApp()
+    app.after(500, lambda: _vraag_snelkoppeling(app))
     app.mainloop()
 
 
