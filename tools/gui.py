@@ -21,13 +21,7 @@ from calculate_workdays import (
 )
 
 
-def ms_to_beaufort(ms: float) -> int:
-    """Converteert windsnelheid in m/s naar Beaufort schaal."""
-    schaal = [0.3, 1.6, 3.4, 5.5, 8.0, 10.8, 13.9, 17.2, 20.8, 24.5, 28.5, 32.7]
-    for bft, grens in enumerate(schaal):
-        if ms < grens:
-            return bft
-    return 12
+from utils import ms_to_beaufort
 
 
 # Kleuren per status
@@ -54,9 +48,9 @@ HEADER_BG = "#343a40"
 HEADER_FG = "#ffffff"
 
 
-class WerkbareDagenApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
+class WerkbareDagenApp(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
         self.title(APP_TITLE)
         self.geometry("1050x750")
         self.minsize(800, 600)
@@ -559,9 +553,10 @@ def _vraag_snelkoppeling(root):
 
 
 def main():
-    app = WerkbareDagenApp()
-    app.after(500, lambda: _vraag_snelkoppeling(app))
-    app.mainloop()
+    root = tk.Tk()
+    root.withdraw()
+    app = WerkbareDagenApp(root)
+    root.mainloop()
 
 
 if __name__ == "__main__":

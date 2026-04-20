@@ -9,7 +9,7 @@ else:
 
 sys.path.insert(0, os.path.join(base, "tools"))
 
-from gui import main
+from weekrapport_gui import main
 
 if __name__ == "__main__":
     main()
